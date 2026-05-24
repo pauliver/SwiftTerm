@@ -120,9 +120,9 @@ extension TerminalView {
     {
         resetCaches()
         self.cellDimension = computeFontDimensions ()
-        if (frame.width > 0) && (frame.height > 0) {
-            let newCols = Int(frame.width / cellDimension.width)
-            let newRows = Int(frame.height / cellDimension.height)
+        if (bounds.width > 0) && (bounds.height > 0) {
+            let newCols = Int(bounds.width / cellDimension.width)
+            let newRows = Int(bounds.height / cellDimension.height)
             resize(cols: newCols, rows: newRows)
         }
         updateCaretView()
@@ -130,7 +130,7 @@ extension TerminalView {
         #if os(macOS)
         needsDisplay = true
         #else
-        setNeedsDisplay(frame)
+        setNeedsDisplay(bounds)
         #endif
     }
     
@@ -184,7 +184,7 @@ extension TerminalView {
         #if os(macOS)
         needsDisplay = true
         #else
-        setNeedsDisplay(frame)
+        setNeedsDisplay(bounds)
         #endif
     }
 
@@ -1216,7 +1216,7 @@ extension TerminalView {
             }
             let renderMode = displayBuffer.lines [row].renderMode
             let lineOffset = calcLineOffset(forRow: row)
-            let lineOrigin = CGPoint(x: 0, y: frame.height - lineOffset)
+            let lineOrigin = CGPoint(x: 0, y: bounds.height - lineOffset)
 
             switch renderMode {
             case .single:
@@ -1345,7 +1345,7 @@ extension TerminalView {
 
                             #if (lastLineExtends)
                             if (row-displayBuffer.yDisp) >= displayBuffer.rows - 1 {
-                                let missing = frame.height - (cellDimension.height + CGFloat(row) + 1)
+                                let missing = bounds.height - (cellDimension.height + CGFloat(row) + 1)
                                 rect.size.height += missing
                                 rect.origin.y -= missing
                             }
@@ -1353,11 +1353,11 @@ extension TerminalView {
 
                             if endColumn >= terminal.cols {
                                 if backgroundColor == nativeBackgroundColor {
-                                    rect.size.width = frame.width - rect.origin.x
+                                    rect.size.width = bounds.width - rect.origin.x
                                 } else {
                                     let marginX = rect.origin.x + rect.size.width
-                                    if marginX < frame.width {
-                                        let marginRect = CGRect(x: marginX, y: rect.origin.y, width: frame.width - marginX, height: rect.size.height)
+                                    if marginX < bounds.width {
+                                        let marginRect = CGRect(x: marginX, y: rect.origin.y, width: bounds.width - marginX, height: rect.size.height)
                                         #if os(macOS)
                                         nativeBackgroundColor.setFill()
                                         marginRect.fill()
@@ -1550,7 +1550,7 @@ extension TerminalView {
         // font change sizes, but once we fix that, we should remove the clearing of the dirty
         // region in the calling code, and enable this code instead.
         let lineOffset = calcLineOffset(forRow: lastRow)
-        let lineOrigin = CGPoint(x: 0, y: frame.height - lineOffset)
+        let lineOrigin = CGPoint(x: 0, y: bounds.height - lineOffset)
 
         let inter = dirtyRect.intersection(CGRect (x: 0, y: lineOrigin.y, width: bounds.width, height: cellHeight))
         if !inter.isEmpty {
@@ -1565,8 +1565,8 @@ extension TerminalView {
 
             func drawSelectionHandle (drawStart: Bool, row: Int) {
                 let lineOffset = calcLineOffset(forRow: row)
-                let lineOrigin = frame.height - lineOffset
-                
+                let lineOrigin = bounds.height - lineOffset
+
                 context.saveGState ()
                 let start = CGPoint (
                     x: CGFloat (drawStart ? start.col : end.col) * cellDimension.width,
@@ -1650,10 +1650,10 @@ extension TerminalView {
         terminal.clearUpdateRange ()
 
         #if os(macOS)
-        let baseLine = frame.height
+        let baseLine = bounds.height
         var region = CGRect (x: 0,
                              y: baseLine - (cellDimension.height + CGFloat(rowEnd) * cellDimension.height),
-                             width: frame.width,
+                             width: bounds.width,
                              height: CGFloat(rowEnd-rowStart + 1) * cellDimension.height)
         
         // If we are the last line, we should also queue a refresh for the "remaining" bits at the
@@ -1661,7 +1661,7 @@ extension TerminalView {
         if rowEnd == terminal.rows - 1 {
             let oh = region.height
             let oy = region.origin.y
-            region = CGRect (x: 0, y: 0, width: frame.width, height: oh + oy)
+            region = CGRect (x: 0, y: 0, width: bounds.width, height: oh + oy)
         }
 #if canImport(MetalKit)
         if metalView != nil {
@@ -1751,7 +1751,7 @@ extension TerminalView {
         let lineOrigin = CGPoint(x: 0, y: offset)
         #else
         let offset = (cellDimension.height * (CGFloat(buffer.y-(buffer.yDisp-buffer.yBase)+1)))
-        let lineOrigin = CGPoint(x: 0, y: frame.height - offset)
+        let lineOrigin = CGPoint(x: 0, y: bounds.height - offset)
         #endif
         caretView.frame.origin = CGPoint(x: lineOrigin.x + (cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
         caretView.setText (ch: buffer.lines [vy][buffer.x])
@@ -1936,7 +1936,7 @@ extension TerminalView {
             //selectionView.notifyScrolled(source: terminal)
             terminalDelegate?.scrolled (source: self, position: scrollPosition)
             updateScroller()
-            setNeedsDisplay(frame)
+            setNeedsDisplay(bounds)
         }
     }
     
@@ -2140,7 +2140,7 @@ extension TerminalView {
         if let context = terminal.kittyPlacementContext {
             insertImage (image, width: context.widthRequest, height: context.heightRequest, preserveAspectRatio: context.preserveAspectRatio)
         } else {
-            insertImage (image, width: CGFloat (width) > frame.width ? .percent(100) : .auto, height: .auto, preserveAspectRatio: true)
+            insertImage (image, width: CGFloat (width) > bounds.width ? .percent(100) : .auto, height: .auto, preserveAspectRatio: true)
         }
     }
    
@@ -2214,8 +2214,8 @@ extension TerminalView {
             heightImageSize = img.size.height
         }
 
-        var width = getPixels (fromDim: widthRequest, regionSize: frame.width, imageSize: widthImageSize, cellSize: cellDimension.width)
-        var height = getPixels (fromDim: heightRequest, regionSize: frame.height, imageSize: heightImageSize, cellSize: cellDimension.height)
+        var width = getPixels (fromDim: widthRequest, regionSize: bounds.width, imageSize: widthImageSize, cellSize: cellDimension.width)
+        var height = getPixels (fromDim: heightRequest, regionSize: bounds.height, imageSize: heightImageSize, cellSize: cellDimension.height)
         
         if preserveAspectRatio {
             switch (widthRequest, heightRequest) {

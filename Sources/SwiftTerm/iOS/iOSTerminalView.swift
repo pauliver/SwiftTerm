@@ -605,7 +605,7 @@ open class TerminalView: UIScrollView, UITextInputTraits, UIKeyInput, UIScrollVi
     }
                     
     func makeContextMenuRegionForSelection () -> CGRect {
-        let width = selection.isMultiLine ? frame.width : CGFloat(selection.end.col-selection.start.col)*cellDimension.width
+        let width = selection.isMultiLine ? bounds.width : CGFloat(selection.end.col-selection.start.col)*cellDimension.width
         
         return CGRect (x: CGFloat (selection.start.col)*cellDimension.width,
                        y: CGFloat (selection.start.row)*cellDimension.height,
@@ -699,14 +699,14 @@ open class TerminalView: UIScrollView, UITextInputTraits, UIKeyInput, UIScrollVi
     // Returns the offsets into getTerminal().buffer.lines for the first visible and last visible lines
     func getVisibleLineRange () -> ClosedRange<Int> {
         let topVisibleLine = contentOffset.y/cellDimension.height
-        let bottomVisibleLine = (topVisibleLine+frame.height/cellDimension.height)-1
+        let bottomVisibleLine = (topVisibleLine+bounds.height/cellDimension.height)-1
 
         return Int(topVisibleLine)...Int(bottomVisibleLine)
     }
-    
+
     public func repositionVisibleFrame () {
         let topVisibleLine = contentOffset.y/cellDimension.height
-        let bottomVisibleLine = (topVisibleLine+frame.height/cellDimension.height)-1
+        let bottomVisibleLine = (topVisibleLine+bounds.height/cellDimension.height)-1
         let lines = self.terminal.displayBuffer.lines.count
         contentOffset.y = max(0, CGFloat(lines) - bottomVisibleLine) * cellDimension.height
     }
@@ -1499,7 +1499,7 @@ open class TerminalView: UIScrollView, UITextInputTraits, UIKeyInput, UIScrollVi
 
         // drawTerminalContents and CoreText expect the AppKit coordinate system
         context.scaleBy (x: 1, y: -1)
-        context.translateBy(x: 0, y: -frame.height)
+        context.translateBy(x: 0, y: -bounds.height)
 
         drawTerminalContents (dirtyRect: dirtyRect, context: context, bufferOffset: 0)
     }
