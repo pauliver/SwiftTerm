@@ -388,8 +388,9 @@ final class MetalTerminalRenderer: NSObject, MTKViewDelegate {
             let fps = Double(debugFrameCount) / elapsed
             let pct = totalRows > 0 ? Int(Double(debugRowsRebuilt) / Double(totalRows) * 100) : 0
             let overdraw = debugFrameCount > 1 && debugRowsRebuilt == 0 ? " IDLE-REDRAW" : ""
-            print(String(format: "Metal FPS: %.1f  rebuilt: %d/%d (%d%%)%@  frames: %d",
-                         fps, debugRowsRebuilt, totalRows, pct, overdraw, debugFrameCount))
+            let msg = String(format: "Metal FPS: %.1f  rebuilt: %d/%d (%d%%)%@  frames: %d",
+                         fps, debugRowsRebuilt, totalRows, pct, overdraw, debugFrameCount)
+            NSLog("[SwiftTerm] %@", msg)
             debugFrameCount = 0
             debugRowsRebuilt = 0
             debugRowsCached = 0
