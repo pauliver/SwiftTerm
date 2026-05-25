@@ -198,7 +198,7 @@ public final class Buffer {
     
     var scrollback: Int?
     
-    var lines : CircularBufferLineList {
+    public var lines : CircularBufferLineList {
         get { return _lines }
     }
 
