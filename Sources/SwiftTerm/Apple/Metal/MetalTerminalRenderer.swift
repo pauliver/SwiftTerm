@@ -391,6 +391,17 @@ final class MetalTerminalRenderer: NSObject, MTKViewDelegate {
             let msg = String(format: "Metal FPS: %.1f  rebuilt: %d/%d (%d%%)%@  frames: %d",
                          fps, debugRowsRebuilt, totalRows, pct, overdraw, debugFrameCount)
             NSLog("[SwiftTerm] %@", msg)
+            let logUrl = FileManager.default.temporaryDirectory.appendingPathComponent("tm_terminal_debug.log")
+            let line = "[\(ISO8601DateFormatter().string(from: Date()))] [Metal] \(msg)\n"
+            if let data = line.data(using: .utf8) {
+                if let handle = try? FileHandle(forWritingTo: logUrl) {
+                    handle.seekToEndOfFile()
+                    handle.write(data)
+                    handle.closeFile()
+                } else {
+                    try? data.write(to: logUrl)
+                }
+            }
             debugFrameCount = 0
             debugRowsRebuilt = 0
             debugRowsCached = 0
